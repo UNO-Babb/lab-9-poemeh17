@@ -18,6 +18,11 @@ def encode(img, msg):
   red, green, blue = pixels[0, 0]
   pixels[0,0] = (msgLength, green, blue)
 
+  requiredPixels = msgLength* 3
+  if requiredPixels > width * height:
+    print("Error")
+    return
+
   for i in range(msgLength * 3):
     x = i % width
     y = i // width
@@ -82,8 +87,8 @@ def decode(img):
     else:
       letterBinary = letterBinary + redBinary[7] + greenBinary[7] + blueBinary[7]
       letterAscii = binaryToNumber(letterBinary)
-      letter = chr(letterAscii)
       msg = msg + chr(letterAscii)
+      letterBinary= ""
 
     pixel = pixel + 1
     x = pixel % width
@@ -97,6 +102,13 @@ def numberToBinary(num):
   """Takes a base10 number and converts to a binary string with 8 bits"""
   binary = ""
   #Convert from decimal to binary
+  while num > 0:
+    binary = str(num % 2) + binary
+    num = num // 2
+
+  while len(binary) < 8:
+    binary = "0" + binary
+
 
 
   return binary
@@ -104,22 +116,61 @@ def numberToBinary(num):
 def binaryToNumber(bin):
   """Takes a string binary value and converts it to a base10 integer."""
   decimal = 0
+  value = 1
+  while len(bin) > 0:
+    lastSpot = len(bin) - 1
+    lastDigit = bin[lastSpot]
 
+    if lastDigit == '1':
+      decimal = decimal + value
+
+    value = value * 2
+
+    bin = bin[0:lastSpot]
 
   return decimal
 
 def main():
   #Ask user if they want to encode/decode
+
+  choice = input ("Would you like to (E)ncode or (D)ecode a message?").lower()
+
+  if choice == 'e':
+    img_path = input("Enter the filename of the PNG image to use: ")
+
+
+    img = Image.open(img_path)
+    msg = input("Enter the secret message to hide: ")
+    encode(img, msg)
+    img.close()
+    print("Message encoded and saved as 'secretImg.png'")
+
+  elif choice == 'd':
+    img_path = input("Enter the filename of the encoded PNG image: ")
+
+    if not os.path.exists(img_path):
+      print("Image not found!")
+      return
+
+    img = Image.open(img_path)
+    msg = decode(img)
+    img.close()
+    print("Decoded message:", msg)
+
+  else:
+    print("Invalid choice. Please enter 'E' or 'D'.")
+  """
   myImg = Image.open('pki.png')
   myMsg = "This is a secret message I will hide in an image."
   encode(myImg, myMsg)
   myImg.close()
-
   """
+  
+  '''
   yourImg = Image.open('secretImg.png')
   msg = decode(yourImg)
   print(msg)
-  """
+  '''
     
 if __name__ == '__main__':
   main()
